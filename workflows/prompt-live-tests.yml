@@ -1,0 +1,51 @@
+name: Prompt Live Tests (manual)
+
+# Manual trigger only (won't run automatically on push)
+on:
+  workflow_dispatch:
+    inputs:
+      question:
+        description: 'Question to run in live harness'
+        required: false
+        default: 'Top 5 products by revenue in Q1 2025.'
+      schema:
+        description: 'Schema string to pass to harness'
+        required: false
+        default: "sales(sale_id, sale_date, product_id, revenue);products(product_id, product_name)"
+
+permissions:
+  contents: read
+
+jobs:
+  live-test:
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      LLM_MODEL: ${{ secrets.LLM_MODEL || 'gpt-4o-mini' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || pip install openai sqlparse python-dotenv
+
+      - name: Run prompt testing harness (live)
+        id: live_harness
+        run: |
+          set -o pipefail
+          echo "Running live prompt harness (interactive)..."
+          python agentic_ai_dev_assets_extra/prompt_testing_harness.py --mode live --question "${{ github.event.inputs.question }}" --schema "${{ github.event.inputs.schema }}" 2>&1 | tee live_harness_output.log
+
+      - name: Upload live harness logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-harness-output
+          path: live_harness_output.log
