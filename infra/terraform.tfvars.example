@@ -1,0 +1,19 @@
+region = "us-east-1"
+name = "agentic"
+vpc_cidr = "10.0.0.0/16"
+public_subnets = ["10.0.0.0/24","10.0.1.0/24"]
+private_subnets = ["10.0.16.0/20","10.0.32.0/20"]
+az_count = 2
+
+eks_version = "1.27"
+eks_node_desired = 2
+eks_node_min = 1
+eks_node_max = 3
+eks_instance_types = ["t3.medium"]
+
+rds_engine_version = "15.3"
+rds_instance_type = "db.t3.medium"
+rds_allocated_storage = 20
+rds_backup_retention = 7
+
+db_username = "agentic_admin"
